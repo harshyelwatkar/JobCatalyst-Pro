@@ -93,6 +93,30 @@ export const JobLocations = [
   "Chennai",
   "New York",
 ];
+export const WorkModes = ["Onsite", "Remote", "Hybrid"];
+
+export const JobSkills = [
+  "Java",
+  "Spring Boot",
+  "React",
+  "Angular",
+  "Node.js",
+  "Express.js",
+  "MongoDB",
+  "MySQL",
+  "PostgreSQL",
+  "JavaScript",
+  "TypeScript",
+  "Python",
+  "HTML",
+  "CSS",
+  "SQL",
+  "Git",
+  "REST API",
+  "AWS",
+  "Docker",
+  "Kubernetes",
+];
 
 // Sample data for Manage Jobs Page
 export const manageJobsData = [

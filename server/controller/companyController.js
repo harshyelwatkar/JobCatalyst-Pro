@@ -105,7 +105,18 @@ export const getCompanyData = async (req, res) => {
 
 //Post a new job
 export const postJob = async (req, res) => {
-  const { title, description, location, salary, level, category } = req.body;
+  const {
+    title,
+    description,
+    location,
+    salary,
+    level,
+    category,
+    skills,
+    minimumGPA,
+    workMode,
+    visaSponsorship,
+  } = req.body;
 
   const companyId = req.company._id;
 
@@ -119,6 +130,11 @@ export const postJob = async (req, res) => {
       date: Date.now(),
       level,
       category,
+
+      skills,
+      minimumGPA,
+      workMode,
+      visaSponsorship,
     });
 
     await newJob.save();
@@ -157,7 +173,7 @@ export const getCompanyPostedJobs = async (req, res) => {
       jobs.map(async (job) => {
         const applicants = await JobApplication.find({ jobId: job._id });
         return { ...job.toObject(), applicants: applicants.length };
-      })
+      }),
     );
 
     res.json({ success: true, jobsData });

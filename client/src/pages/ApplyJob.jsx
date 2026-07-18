@@ -11,6 +11,7 @@ import Footer from "../components/Footer";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useAuth } from "@clerk/clerk-react";
+import { calculateMatch } from "../utils/matching";
 
 const ApplyJob = () => {
   const { id } = useParams();
@@ -23,6 +24,8 @@ const ApplyJob = () => {
 
   const [isAlreadyApplied, setIsAlreadyApplied] = useState(false);
 
+  const [showMatchDashboard, setShowMatchDashboard] = useState(false);
+
   const {
     jobs,
     backendUrl,
@@ -30,6 +33,8 @@ const ApplyJob = () => {
     userApplications,
     fetchUserApplications,
   } = useContext(AppContext);
+
+  const match = userData && jobData ? calculateMatch(userData, jobData) : null;
 
   const fetchJob = async () => {
     try {
@@ -65,12 +70,11 @@ const ApplyJob = () => {
       const { data } = await axios.post(
         backendUrl + "/api/users/apply",
         { jobId: jobData._id },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       if (data.success) {
         toast.success(data.message);
-
         await fetchUserApplications();
       } else {
         toast.error(data.message);
@@ -82,7 +86,7 @@ const ApplyJob = () => {
 
   const checkAlreadyApplied = () => {
     const hasApplied = userApplications.some(
-      (item) => item.jobId._id === jobData._id
+      (item) => item.jobId._id === jobData._id,
     );
     setIsAlreadyApplied(hasApplied);
   };
@@ -101,6 +105,7 @@ const ApplyJob = () => {
     <div>
       <>
         <Navbar />
+
         <div className="min-h-screen flex flex-col py-10 container px-4 2xl:px-20 mx-auto">
           <div className="bg-white text-black rounded-lg w-full">
             <div className="flex justify-center md:justify-between flex-wrap gap-8 px-14 py-20 mb-6 bg-sky-50 border border-sky-400 rounded-xl">
@@ -110,23 +115,28 @@ const ApplyJob = () => {
                   src={jobData.companyId.image}
                   alt=""
                 />
+
                 <div className="text-center md:text-left text-neutral-700">
                   <h1 className="text-2xl sm:text-4xl font-medium">
                     {jobData.title}
                   </h1>
-                  <div className="flex flex-row flex-wrap max-md:justify-center gap-y-2 gap-6 items-center text-gray-600 mt-2 ">
+
+                  <div className="flex flex-row flex-wrap max-md:justify-center gap-y-2 gap-6 items-center text-gray-600 mt-2">
                     <span className="flex items-center gap-1">
                       <img src={assets.suitcase_icon} alt="" />
                       {jobData.companyId.name}
                     </span>
+
                     <span className="flex items-center gap-1">
                       <img src={assets.location_icon} alt="" />
                       {jobData.location}
                     </span>
+
                     <span className="flex items-center gap-1">
                       <img src={assets.person_icon} alt="" />
                       {jobData.level}
                     </span>
+
                     <span>
                       <img src={assets.money_icon} alt="" />
                       CTC: {kconvert.convertTo(jobData.salary)}
@@ -142,19 +152,125 @@ const ApplyJob = () => {
                 >
                   {isAlreadyApplied ? "Already Applied" : "Apply Now"}
                 </button>
+
                 <p className="mt-3 text-gray-600">
                   Posted {moment(jobData.date).fromNow()}
                 </p>
               </div>
             </div>
 
-            <div className="flex flex-col lg:flex-row items-start gap-12 ">
+            <div className="flex flex-col lg:flex-row items-start gap-12">
               <div className="w-full lg:w-2/3">
+                {userData && (
+                  <>
+                    {/* Job Match Dashboard */}
+
+                    <div className="mb-6 border border-gray-200 rounded-xl shadow-sm">
+                      <button
+                        onClick={() =>
+                          setShowMatchDashboard(!showMatchDashboard)
+                        }
+                        className="w-full flex justify-between items-center px-5 py-4 bg-gray-50 rounded-xl"
+                      >
+                        <div className="text-left">
+                          <h2 className="font-semibold text-lg">
+                            🎯 Job Match Dashboard
+                          </h2>
+
+                          {match?.matchScore != null ? (
+                            <p
+                              className={`mt-1 font-semibold ${
+                                match.matchScore >= 81
+                                  ? "text-green-600"
+                                  : match.matchScore >= 61
+                                    ? "text-yellow-600"
+                                    : "text-red-600"
+                              }`}
+                            >
+                              {match.matchScore >= 81
+                                ? "🟢"
+                                : match.matchScore >= 61
+                                  ? "🟡"
+                                  : "🔴"}{" "}
+                              {match.matchScore}% Match
+                            </p>
+                          ) : (
+                            <p className="text-gray-500 mt-1">
+                              ⚪ Complete your profile to unlock personalized
+                              job matching
+                            </p>
+                          )}
+                        </div>
+
+                        <span className="text-xl">
+                          {showMatchDashboard ? "▲" : "▼"}
+                        </span>
+                      </button>
+
+                      {showMatchDashboard && match && (
+                        <div className="border-t px-5 py-5 bg-white">
+                          <div className="mb-5">
+                            <h3 className="font-semibold mb-2">✅ Strengths</h3>
+
+                            {match.matchedOn.length ? (
+                              <div className="flex flex-wrap gap-2">
+                                {match.matchedOn.map((item) => (
+                                  <span
+                                    key={item}
+                                    className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm"
+                                  >
+                                    {item}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-gray-500">
+                                No strong matches yet.
+                              </p>
+                            )}
+                          </div>
+
+                          <div>
+                            <h3 className="font-semibold mb-2">
+                              📚 Missing Skills
+                            </h3>
+
+                            {match?.matchScore == null ? (
+                              <p className="text-gray-500 font-medium">
+                                No skill found.
+                              </p>
+                            ) : match.missingSkills.length ? (
+                              <div className="flex flex-wrap gap-2">
+                                {match.missingSkills.map((skill) => (
+                                  <span
+                                    key={skill}
+                                    className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm"
+                                  >
+                                    {skill}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-green-600 font-medium">
+                                🎉 You already meet all required skills.
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+
                 <h2 className="font-bold text-2xl mb-4">Job Description</h2>
+
                 <div
                   className="rich-text"
-                  dangerouslySetInnerHTML={{ __html: jobData.description }}
-                ></div>
+                  dangerouslySetInnerHTML={{
+                    __html: jobData.description,
+                  }}
+                />
+
                 <button
                   onClick={applyHandler}
                   className="bg-blue-600 p-2.5 px-10 text-white rounded mt-10"
@@ -163,27 +279,31 @@ const ApplyJob = () => {
                 </button>
               </div>
 
-              {/*Right Section - More Jobs */}
-              <div className="w-full lg:w-1/3 mt-8 lg:mt-0 lg:ml-12 space-y-5">
-                <h2>More Jobs from {jobData.companyId.name}</h2>
-                {jobs
-                  .filter(
-                    (job) =>
-                      job._id !== jobData._id &&
-                      job.companyId._id === jobData.companyId._id
-                  )
-                  .filter((job) => {
-                    //Set of applied jobs
-                    const appliedJobsIds = new Set(
-                      userApplications.map((app) => app.jobId && app.jobId._id)
-                    );
-                    //Return true if the user has not already applied for this job
-                    return !appliedJobsIds.has(job._id);
-                  })
-                  .slice(0, 4)
-                  .map((job, index) => (
-                    <JobCard key={index} job={job} />
-                  ))}
+              <div className="w-full lg:w-1/3 mt-8 lg:mt-0 lg:ml-12">
+                <h2 className="text-xl font-semibold mb-5">
+                  More Jobs from {jobData.companyId.name}
+                </h2>
+
+                <div className="max-h-[80vh] overflow-y-auto pr-2 space-y-5">
+                  {jobs
+                    .filter(
+                      (job) =>
+                        job._id !== jobData._id &&
+                        job.companyId._id === jobData.companyId._id,
+                    )
+                    .filter((job) => {
+                      const appliedJobsIds = new Set(
+                        userApplications.map(
+                          (app) => app.jobId && app.jobId._id,
+                        ),
+                      );
+
+                      return !appliedJobsIds.has(job._id);
+                    })
+                    .map((job, index) => (
+                      <JobCard key={index} job={job} />
+                    ))}
+                </div>
               </div>
             </div>
           </div>

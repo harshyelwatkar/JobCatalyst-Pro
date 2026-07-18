@@ -3,22 +3,49 @@ import JobApplication from "../models/JobApplication.js";
 import User from "../models/User.js";
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
+import { clerkClient } from "@clerk/express";
 
-//Get user data
+// Get user data
 export const getUserData = async (req, res) => {
-  const { userId } = req.auth();
-
   try {
-    const user = await User.findById(userId);
+    const { userId } = req.auth();
 
-    if (!user) {
-      return res.json({ success: false, message: "User Not Found" });
-    }
+    const user = await ensureUserExists(userId);
 
-    res.json({ success: true, user });
+    return res.json({
+      success: true,
+      user,
+    });
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    return res.json({
+      success: false,
+      message: error.message,
+    });
   }
+};
+
+// Ensure MongoDB user exists for authenticated Clerk user
+const ensureUserExists = async (userId) => {
+  let user = await User.findById(userId);
+
+  if (user) return user;
+
+  const clerkUser = await clerkClient.users.getUser(userId);
+
+  user = await User.create({
+    _id: clerkUser.id,
+    name: `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim(),
+    email: clerkUser.emailAddresses[0]?.emailAddress || "",
+    image: clerkUser.imageUrl,
+    resume: "",
+    skills: [],
+    preferredRole: "",
+    preferredLocation: "",
+    workAuthorization: "",
+    visaRequired: false,
+  });
+
+  return user;
 };
 
 //Apply for a job
@@ -83,14 +110,7 @@ export const updateUserResume = async (req, res) => {
 
     const resumeFile = req.file;
 
-    const userData = await User.findById(userId);
-
-    if (!userData) {
-      return res.json({
-        success: false,
-        message: "User Not Found",
-      });
-    }
+    const userData = await ensureUserExists(userId);
 
     if (resumeFile) {
       const resumeUpload = await cloudinary.uploader.upload(resumeFile.path, {
@@ -109,5 +129,43 @@ export const updateUserResume = async (req, res) => {
     return res.json({ success: true, message: "Resume updated" });
   } catch (error) {
     res.json({ success: false, message: error.message });
+  }
+};
+
+// Update user profile details
+export const updateUserProfile = async (req, res) => {
+  try {
+    const { userId } = req.auth();
+
+    const {
+      skills,
+      gpa,
+      preferredRole,
+      preferredLocation,
+      workAuthorization,
+      visaRequired,
+    } = req.body;
+
+    const userData = await ensureUserExists(userId);
+
+    userData.skills = Array.isArray(skills) ? skills : [];
+    userData.gpa = gpa;
+    userData.preferredRole = preferredRole;
+    userData.preferredLocation = preferredLocation;
+    userData.workAuthorization = workAuthorization;
+    userData.visaRequired = visaRequired;
+
+    await userData.save();
+
+    return res.json({
+      success: true,
+      message: "Profile updated successfully",
+      user: userData,
+    });
+  } catch (error) {
+    return res.json({
+      success: false,
+      message: error.message,
+    });
   }
 };

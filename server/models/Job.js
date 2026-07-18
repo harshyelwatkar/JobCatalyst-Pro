@@ -14,6 +14,26 @@ const jobSchema = new mongoose.Schema({
     ref: "Company",
     required: true,
   },
+  skills: {
+    type: [String],
+    default: [],
+  },
+
+  minimumGPA: {
+    type: Number,
+    default: 0,
+  },
+
+  workMode: {
+    type: String,
+    enum: ["Onsite", "Remote", "Hybrid"],
+    default: "Onsite",
+  },
+
+  visaSponsorship: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const Job = mongoose.model("Job", jobSchema);

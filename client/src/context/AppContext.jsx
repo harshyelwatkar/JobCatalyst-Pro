@@ -98,6 +98,35 @@ export const AppContextProvider = (props) => {
     }
   };
 
+  // Function to update user profile
+  const updateUserProfile = async (profileData) => {
+    try {
+      const token = await getToken();
+
+      const { data } = await axios.post(
+        backendUrl + "/api/users/update-profile",
+        profileData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (data.success) {
+        setUserData(data.user);
+        toast.success(data.message);
+        return true;
+      } else {
+        toast.error(data.message);
+        return false;
+      }
+    } catch (error) {
+      toast.error(error.message);
+      return false;
+    }
+  };
+
   useEffect(() => {
     fetchJobs();
     const storedCompanyToken = localStorage.getItem("companyToken");
@@ -117,6 +146,9 @@ export const AppContextProvider = (props) => {
     if (user) {
       fetchUserData();
       fetchUserApplications();
+    } else {
+      setUserData(null);
+      setUserApplications([]);
     }
   }, [user]);
 
@@ -140,6 +172,7 @@ export const AppContextProvider = (props) => {
     setUserApplications,
     fetchUserData,
     fetchUserApplications,
+    updateUserProfile,
   };
 
   return (
