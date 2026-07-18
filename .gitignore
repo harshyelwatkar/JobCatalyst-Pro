@@ -1,0 +1,26 @@
+# Dependencies
+client/node_modules/
+server/node_modules/
+
+# Environment Variables
+client/.env
+server/.env
+
+# Build folders
+client/dist/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary uploads
+server/uploads/
+
+# Vercel
+.vercel/
+
+# IDE
+.vscode/
