@@ -1,4 +1,4 @@
-# 🚀 JobCatalyst Pro – AI-Powered Job Portal Platform
+# 🚀 JobCatalyst Pro – Smart Job Portal Platform
 
 JobCatalyst Pro is a modern full-stack job portal designed to streamline the recruitment process for both recruiters and job seekers. Built using the MERN Stack, it provides an intuitive, secure, and scalable platform where recruiters can efficiently manage hiring while candidates can discover opportunities, optimize their profiles, and apply with confidence.
 
@@ -54,7 +54,7 @@ Candidates can:
 
 ---
 
-# 🤖 AI Job Match Dashboard
+# 🤖 Smart Job Match Dashboard
 
 One of the standout features of JobCatalyst Pro is its intelligent **Job Match Dashboard**.
 
