@@ -4,6 +4,8 @@ JobCatalyst Pro is a modern full-stack job portal designed to streamline the rec
 
 Unlike traditional job portals, JobCatalyst Pro introduces an **AI-powered Job Match Dashboard** that analyzes candidate profiles against job requirements to provide personalized compatibility scores, skill gap analysis, and actionable insights, enabling smarter job applications.
 
+<img width="1917" height="923" alt="job_catalyst" src="https://github.com/user-attachments/assets/79d8c6e6-fdd0-4a0e-a0bd-fc0757b69899" />
+
 ---
 
 # ✨ Key Features
