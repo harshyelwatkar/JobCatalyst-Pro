@@ -1,8 +1,7 @@
 import Job from "../models/Job.js";
 import JobApplication from "../models/JobApplication.js";
 import User from "../models/User.js";
-import { v2 as cloudinary } from "cloudinary";
-import fs from "fs";
+import uploadToCloudinary from "../utils/cloudinaryUpload.js";
 import { clerkClient } from "@clerk/express";
 
 // Get user data
@@ -113,22 +112,22 @@ export const updateUserResume = async (req, res) => {
     const userData = await ensureUserExists(userId);
 
     if (resumeFile) {
-      const resumeUpload = await cloudinary.uploader.upload(resumeFile.path, {
-        resource_type: "auto",
-        format: "pdf",
-      });
-
-      // Delete temporary file from uploads folder
-      await fs.promises.unlink(resumeFile.path);
+      const resumeUpload = await uploadToCloudinary(resumeFile.buffer, "auto");
 
       userData.resume = resumeUpload.secure_url;
     }
 
     await userData.save();
 
-    return res.json({ success: true, message: "Resume updated" });
+    return res.json({
+      success: true,
+      message: "Resume updated",
+    });
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    return res.json({
+      success: false,
+      message: error.message,
+    });
   }
 };
 
